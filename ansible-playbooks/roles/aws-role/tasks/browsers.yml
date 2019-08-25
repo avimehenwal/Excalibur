@@ -1,0 +1,4 @@
+- name: Install a google chrome .deb package from the internet.
+  sudo: true
+  apt:
+    deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb

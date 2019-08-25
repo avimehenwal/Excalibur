@@ -1,0 +1,10 @@
+
+[insta]
+ec2-54-81-72-159.compute-1.amazonaws.com
+
+[insta:vars]
+ansible_ssh_private_key_file=/home/avi/.ssh/avi-instapy.pem
+
+[all:vars]
+ansible_connection=ssh
+ansible_user=ubuntu

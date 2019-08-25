@@ -1,0 +1,68 @@
+---
+- name: Create and add users on hosts
+  hosts: all
+
+  tasks:
+  - name: create/remove multiple users
+    become: true
+    user:
+      name: "{{ item }}"
+      state: present
+      # state: absent
+      group: sudo
+      shell: /bin/bash
+      comment: "{{ item }}"
+      password: $6$mysecretsalt$MIJffjeQyfrKKrGkprGrDL/g2mCJa53koLmYQuuLmY9y37pDvGKPXU1Ov3RbMi.tpQ9cWvxAzUVtBLe7KrZoU.
+      create_home: yes
+      home: "/home/{{item}}"
+    loop:
+      - Eddard "Ned" Stark
+      - Robert Baratheon
+      - Jaime Lannister
+      - Catelyn Stark
+      - Cersei Lannister
+      - Daenerys Targaryen
+      - Jorah Mormont
+      - Viserys Targaryen
+      - Jon Snow
+      - Sansa Stark
+      - Arya Stark
+      - Robb Stark
+      - Theon Greyjoy
+      - Bran Stark
+      - Joffrey Baratheon
+      - Sandor "The Hound" Clegane
+      - Tyrion Lannister
+      - Khal Drogo
+      - Petyr "Littlefinger" Baelish
+      - Davos Seaworth
+      - Samwell Tarly
+      - Stannis Baratheon
+      - Melisandre
+      - Jeor Mormont
+      - Bronn
+      - Varys
+      - Shae
+      - Margaery Tyrell
+      - Tywin Lannister
+      - Talisa Maegyr
+      - Ygritte
+      - Gendry
+      - Tormund Giantsbane
+      - Brienne of Tarth
+      - Ramsay Bolton
+      - Gilly
+      - Daario Naharis
+      - Missandei
+      - Ellaria Sand
+      - Tommen Baratheon
+      - Jaqen H'ghar
+      - Roose Bolton
+      - The High Sparrow
+      - Grey Worm
+
+  - name: Run a sample command
+    tags: test
+    shell: echo 'DUMMY OUTPUT- Hello From Ansible'
+
+

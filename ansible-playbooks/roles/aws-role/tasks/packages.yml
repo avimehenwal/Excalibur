@@ -1,0 +1,12 @@
+- name: Installing apt packages, some may fail
+  block:
+  - name: Install a list of packages
+    become: true
+    tags:
+    - pkm-mgr
+    apt:
+      name: "{{ apt_packages }}"
+      state: present
+    # when: ansible_os_family == 'Debian'
+    changed_when: false
+  # ignore_errors: yes

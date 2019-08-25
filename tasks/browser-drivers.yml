@@ -1,0 +1,11 @@
+- name: Download the gecko driver
+  get_url: url="https://github.com/mozilla/geckodriver/releases/download/v{{ gecko_version }}/geckodriver-v{{ gecko_version }}-macos.tar.gz" dest=/tmp mode=0777
+
+- name: Install the gecko driver
+  unarchive: src="/tmp/geckodriver-v{{ gecko_version }}-macos.tar.gz" dest=/usr/local/bin/ mode=0700 copy=no
+
+- name: Download the chrome driver
+  get_url: url="http://chromedriver.storage.googleapis.com/{{ chrome_version }}/chromedriver_mac32.zip" dest=/tmp mode=0777
+
+- name: Install the chrome driver
+  unarchive: src=/tmp/chromedriver_mac32.zip dest=/usr/local/bin/ mode=0700 copy=no

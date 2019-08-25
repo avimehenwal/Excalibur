@@ -1,0 +1,20 @@
+---
+# defaults file for /home/avi/Excalibur/ansible-playbooks/aws/roles
+
+# geck driver version
+gecko_version: 0.24.0
+# chrome driver version
+chrome_version: 2.9
+# selenium driver version
+# selenium_version: 3.4.0
+
+# Package list to install
+apt_packages:
+- tree
+- git
+- curl
+- vim
+- unzip
+- ubuntu-desktop      # gnome desktop
+- firefox
+- xvfb

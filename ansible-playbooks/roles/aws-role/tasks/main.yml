@@ -1,0 +1,6 @@
+---
+# tasks file for /home/avi/Excalibur/ansible-playbooks/aws/roles
+
+- import_tasks: packages.yml
+- import_tasks: browsers.yml
+- import_tasks: drivers.yml

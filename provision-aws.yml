@@ -1,0 +1,50 @@
+----
+- name: setup aws to run bot
+  hosts: all
+  become: true
+  vars:
+    apt_packages:
+    - tree
+    - git
+    - curl
+    - vim
+    - unzip
+    - ubuntu-desktop      # gnome desktop
+    - firefox=68.0.2
+    - xvfb
+
+  pre_tasks:
+  - name: update the cache repositories
+    apt: update_cache=yes
+    changed_when: False
+
+  tasks:
+  - name: Installing apt packages, some may fail
+    block:
+    - name: Install a list of packages
+      become: true
+      tags:
+      - pkm-mgr
+      apt:
+        name: "{{ apt_packages }}"
+        state: present
+      when: ansible_os_family == 'Debian'
+      changed_when: false
+    # ignore_errors: yes
+
+
+sudo apt-get update
+reboot
+Run Xvfb in the background and specify a display number (10 in my example)
+$ Xvfb :10 -ac &
+export DISPLAY=:10
+
+cd/tmp/
+wget https://chromedriver.storage.googleapis.com/2.37/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+sudo mv chromedriver /usr/bin/chromedriver
+chromedriver --version
+
+curl https://intoli.com/install-google-chrome.sh | bash
+sudo mv /usr/bin/google-chrome-stable /usr/bin/google-chrome
+google-chrome --version && which google-chrome

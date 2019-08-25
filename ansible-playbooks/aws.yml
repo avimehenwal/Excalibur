@@ -1,0 +1,57 @@
+---
+- name: Configure AWS to run selenium and GUI
+  hosts: all
+  become: true
+  gather_facts: False
+  roles:
+  - pablerass.xvfb
+  # - dgnest.xvfb
+  - aws-role
+
+  pre_tasks:
+    - name: update repositories
+      apt: update_cache=yes
+      changed_when: False
+
+# sudo apt-get install xvfb xserver-xephyr vnc4server
+# apt-get install dbus-x11
+edit /etc/ssh_config and /etc/sshd_config and restart service
+sudo apt update
+sudo apt install -y ubuntu-desktop xrdp
+
+[globals]
+bitmap_cache=yes
+bitmap_compression=yes
+port=3389
+crypt_level=low
+channel_code=1
+max_bpp=24
+
+[xrdp1]
+name=sesman-Xvnc
+lib=libvnc.so
+username=ask
+password=ask
+ip=127.0.0.1
+port=ask-1
+
+sudo apt-get update
+sudo apt-get -y upgrade
+sudo apt-get -y install unzip python3-pip python3-dev build-essential libssl-dev libffi-dev xvfb
+sudo pip3 install --upgrade pip
+export LANGUAGE=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+locale-gen en_US.UTF-8
+sudo dpkg-reconfigure locales
+pip3 install --upgrade pip
+
+$ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+sudo sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+sudo apt-get update
+sudo apt-get purge google-chrome-stable
+
+sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_75.0.3770.142-1_amd64.deb && \
+sudo dpkg -i google-chrome-stable_75.0.3770.142-1_amd64.deb && \
+sudo apt-mark hold google-chrome-stable  && \
+google-chrome-stable --version \
