@@ -1,0 +1,146 @@
+---
+- name: provision persional dotfiles on any vagrant ubuntu box
+  hosts: "{{ variable_host | default('all') }}"
+  vars:
+    packages:
+    - tree
+    - fish
+    # - xclip # Error: Can't open display: (null)
+    - curl
+    - git
+    - unzip     # required by unarchive module {tar and unzip}
+    - vim
+    - ranger
+    - ansible   # for testing ansible playbooks
+    - python-dev
+    - python-pip
+    - python3-dev
+    - python3-pip
+    - python3-venv  # python3 virtual environment
+    pip_packages:
+    - termgraph
+    sys_user: vagrant
+    download_dir: "/home/{{ sys_user }}/mySoftwares"
+    dotfile: "git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME"
+  tasks:
+  - name: Installing apt packages, some may fail
+    block:
+    - name: Update the cache
+      apt: "update_cache=yes"
+      become: true
+    - name: Install a list of packages
+      become: true
+      tags:
+      - pkm-mgr
+      apt:
+        name: "{{ packages }}"
+        state: present
+      when: ansible_os_family == 'Debian'
+      changed_when: false
+    ignore_errors: yes
+  
+  - name: Install pip packages
+    tags:
+    - pip-pkm-mgr
+    pip3:
+      name: "{{ pip_packages }}"
+      state: latest
+  
+  - name: Create download_dir directory if it does not exist
+    file:
+      path: "{{ download_dir }}"
+      state: directory
+  - name: Install diff-so-fancy
+    become: true
+    tags:
+    - shell-tools
+    get_url:
+      url: https://raw.githubusercontent.com/so-fancy/diff-so-fancy/master/third_party/build_fatpack/diff-so-fancy
+      dest: /usr/local/bin
+      mode: u=rwx,g=rx,o=rx
+      owner: root
+      group: root
+  - name: Download fzf fuzzy finder repo
+    tags:
+    - fzf
+    git:
+      repo: https://github.com/junegunn/fzf.git
+      dest: "{{ download_dir }}/fzf"
+  - name: install FZF
+    tags:
+    - fzf
+    shell: "{{ download_dir }}/fzf/install --all"
+  
+  # - name: Install FishMarks for bookmarks in shell
+  #   tags:
+  #   - fish
+  #   shell: curl -L https://github.com/techwizrd/fishmarks/raw/master/install.fish | fish
+  - name: Make fish shell default shell for sys_user
+    become: true
+    tags:
+    - fish
+    user:
+      name: "{{ sys_user }}"
+      shell: /usr/bin/fish
+
+  - name: Cleanup - Make sure everything is clean
+    become: false
+    tags:
+    - cleanup
+    file:
+      state: absent
+      path: $HOME/.dotfiles
+      force: yes
+  - name: Cleanup - Remove all  older dotfiles
+    tags:
+    - cleanup
+    file :
+      path: '{{ item }}'
+      state: absent
+    with_items:
+      - "$HOME/.ackrc"
+      - "$HOME/.ackrc"
+      - "$HOME/.vimrc"
+      - "$HOME/.gitconfig"
+      - "$HOME/.config/i3/config"
+      - "$HOME/.config/nvim/init.vim"
+      - "$HOME/.config/fish/config.fish"
+      - "$HOME/.config/fish/functions/git.fish"
+      - "$HOME/.config/fish/functions/sys.fish"
+      - "$HOME/.config/ranger/commands.py"
+      - "$HOME/.config/ranger/commands_full.py"
+      - "$HOME/.config/ranger/rc.conf"
+      - "$HOME/.config/ranger/rifle.conf"
+      - "$HOME/.config/ranger/scope.sh"
+      - "$HOME/.vim/templates/bootstrap_html.snippet"
+      - "$HOME/.vim/templates/html_basic.snippet"
+      - "$HOME/.vim/templates/perl_script.snippet"
+      - "$HOME/.vim/templates/python_script.snippet"
+      - "$HOME/.vim/templates/shell_script.snippet"
+      - "$HOME/Excalibur/Vagrantfile"
+      - "$HOME/Excalibur/dotfiles.yml"
+      - "$HOME/README.adoc"
+      - "$HOME/playbook.yml"
+
+      
+  - name: dotfiles - clone git bare dotfile repo
+    become: false
+    tags:
+    - dotfile
+    git: 
+      repo: https://github.com/avimehenwal/dotfiles.git
+      dest: $HOME/.dotfiles
+      bare: yes
+      version: ubuntu
+  - name: dotfiles - set config not to show untracked files
+    tags:
+    - dotfile
+    command: "{{dotfile}} config status.showUntrackedFiles no"
+  - name: dotfiles - Pull origin ubuntu on local ubuntu branch
+    tags:
+    - dotfile
+    command: "{{dotfile}} pull origin ubuntu"
+  - name: dotfiles - checkout branch if status shows deleted files
+    tags:
+    - dotfile
+    command: "{{dotfile}} checkout ubuntu"

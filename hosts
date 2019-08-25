@@ -1,0 +1,25 @@
+[local]
+localhost ansible_connection=local
+
+[service1]
+example.server1.com ansible_host=222.222.29.156 ansible_user=username1
+
+[osm]
+example.server2.com ansible_host=222.222.29.187 ansible_user=username2
+
+[openstack]
+example.server3.com ansible_host=222.222.29.186 ansible_user=username3
+
+[service4]
+example.server4.com ansible_host=222.222.29.188 ansible_user=username4
+
+[vms:children]
+service1
+openstack
+osm
+service4
+
+[all:vars]
+ansible_connection=ssh
+ansible_user=root
+ansible_ssh_pass=pg@upb123
