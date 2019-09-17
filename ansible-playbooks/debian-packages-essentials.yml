@@ -1,0 +1,71 @@
+---
+- name: Install/Remove debian packages
+  hosts: localhost
+  vars:
+    packages_add:
+    - audacity
+    - openshot
+    - inkscape
+    - kazam
+    - vlc
+    # - chrome / brave
+    - firefox
+    - proxychains
+    - okular
+    - mendley
+    - anki
+    - vim
+    - tmux
+    - meld
+    - git
+    - lxd
+    - docker
+    - fish
+    - fonts-powerline
+    - curl
+    - tree
+    - xclip
+    - copyQ
+    - git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shell
+    packages_remove:
+    - Transmission
+    pip_packages:
+    - termgraph
+    sys_user: avi
+    download_dir: "/home/{{ sys_user }}/mySoftwares"
+    dotfile: "git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME"
+  
+  tasks:
+  - name: Remove Package
+    become: true
+    tags:
+    - pkg
+    apt:
+      name: "{{ packages_remove }}"
+      state: absent
+    ignore_errors: yes
+
+  - name: Installing apt packages, some may fail
+    block:
+    - name: Update the cache
+      apt: "update_cache=yes"
+      become: true
+    - name: Install a list of packages
+      become: true
+      tags:
+      - pkg
+      apt:
+        name: "{{ packages_add }}"
+        state: present
+      when: ansible_os_family == 'Debian'
+      changed_when: false
+    ignore_errors: yes
+
+  # - name: Install SNAP packages
+  #   become: true
+  #   tags:
+  #   - pkg
+  #   snap:
+  #     name:
+  #       - code
+  #     state: present
