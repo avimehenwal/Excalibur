@@ -1,0 +1,29 @@
+# Multi host configuration
+# vagrant up --parallel 
+
+Vagrant.configure("2") do |config|
+  config.vm.define :vm1 do |vm1|
+    config.vm.box = "debian/jessie64"
+    config.vm.box_version = "8.11.0"
+    config.vm.box_check_update = false
+    config.vm.provider :libvirt do |libvirt|
+      # libvirt.cpus = 4
+      # libvirt.cputopology :sockets => '2', :cores => '2', :threads => '1'
+      # libvirt.host = "machine.com"
+    end
+    config.vm.provision "shell", inline: <<-SHELL
+      apt-get update
+    SHELL
+  end
+  
+  config.vm.define :vm2 do |vm2|
+    config.vm.box = "debian/jessie64"
+    config.vm.box_version = "8.11.0"
+    config.vm.box_check_update = false
+    config.vm.provider :libvirt do |libvirt|
+    end
+    config.vm.provision "shell", inline: <<-SHELL
+      apt-get update
+    SHELL
+  end
+end
