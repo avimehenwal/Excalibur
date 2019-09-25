@@ -1,0 +1,45 @@
+# https://docs.openstack.org/devstack/latest/
+
+$user = <<-ADDUSER
+sudo useradd -s /bin/bash -d /opt/stack -m stack
+echo "stack ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/stack
+sudo usermod --append --groups sudo stack
+ADDUSER
+
+$script = <<-SCRIPT
+sudo su --login stack --command=pwd
+sudo su --login stack -c git clone https://opendev.org/openstack/devstack
+sudo su --login stack -c cd devstack
+sudo su --login stack -c touch local.conf
+sudo su --login stack -c cat <<EOT >> local.conf
+[[local|localrc]]
+HOST_IP=`hostname -I`
+ADMIN_PASSWORD=pass
+DATABASE_PASSWORD=pass
+RABBIT_PASSWORD=pass
+SERVICE_PASSWORD=pass
+EOT
+sudo su --login stack -c ./stack.sh
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.define :devstack do |devstack|
+    config.vm.box = "ubuntu/bionic64"
+    config.vm.provider "virtualbox" do |v|
+      v.name = "my_vm"
+      v.cpus = 3
+      v.memory = 2048
+    end
+    config.vm.provision :shell, inline: $user, privileged: true
+    # Trigger reload machine
+    config.vm.provision :reload 
+    config.vm.provision :shell, inline: $script, privileged: true
+    #NSSM
+  end
+end
+
+# ISSUES
+# 1. https://stackoverflow.com/questions/46192965/error-in-running-stack-sh-in-devstack
+# 2. devstack: DevStack should be run as a user with sudo permissions, 
+    # devstack: not root.
+# 3. https://github.com/aidanns/vagrant-reload

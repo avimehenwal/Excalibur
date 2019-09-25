@@ -1,0 +1,15 @@
+# Openstack - stein
+
+Vagrant.configure("2") do |config|
+  config.vm.define :stein do |stein|
+    config.vm.box = "kaergel/openstack-stein-singlenode"
+    config.vm.provider :libvirt do |libvirt|
+      libvirt.memory = 1024
+      libvirt.cpus = 1
+    end
+  end
+end
+
+# USEFUL LINKS
+# https://app.vagrantup.com/kaergel/boxes/openstack-stein-singlenode
+# https://github.com/vagrant-libvirt/vagrant-libvirt
