@@ -1,0 +1,8 @@
+# https://github.com/ethicalhack3r/DVWA
+# https://app.vagrantup.com/kyledampier/boxes/DVWA
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "kyledampier/DVWA"
+  config.vm.box_version = "0.1"
+  config.vm.network "forwarded_port", guest: 80, host: 8888, host_ip: "127.0.0.1"
+end
