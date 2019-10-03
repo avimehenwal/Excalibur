@@ -1,0 +1,34 @@
+$script = <<-SCRIPT
+sudo apt update
+sudo apt install -y tree ranger
+git clone git://git.yoctoproject.org/poky
+cd poky
+git fetch --tags
+git tag
+git checkout tags/yocto-2.7.1 -b my-yocto-2.7.1
+
+# Initial build
+cd ~/poky
+source oe-init-build-env
+bitbake core-image-sato
+runqemu qemux86
+
+# Adding a new layer
+cd ~/poky/build
+bitbake-layers add-layer ../meta-altera
+bitbake-layers create-layer meta-mylayer
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+  # config.disksize.size = '50GB'
+  config.vm.provider "virtualbox" do |v|
+    v.name = "yocto1"
+    v.cpus = 3
+    v.memory = 2048
+  end
+  config.vm.provision :shell, inline: $script, privileged: true
+end
+
+#  vagrant plugin install vagrant-disksize

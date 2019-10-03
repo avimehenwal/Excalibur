@@ -1,0 +1,32 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"
+  end
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    sudo snap install juju --classic
+    sudo snap install lxd
+    sudo snap install charm --classic
+    
+    sudo lxd init --auto
+    sudo lxc network set lxdbr0 ipv6.address none
+    juju clouds
+    sudo juju bootstrap localhost overlord
+    sudo juju deploy hello-juju
+    sudo juju expose hello-juju
+    sudo juju deploy postgresql
+    sudo juju relate postgresql:db hello-juju
+    
+    SHELL
+  end
+  
+# juju ssh hello-unit/0
+# juju deploy mysql --constraints "mem=6G cores=2"
+# juju deploy postgresql --constraints "instance-type=c5.large mem=3.5G"
+# juju deploy cs:bundle/openstack-base-61
+
+# watch --difference --color 'sudo juju status --relations --color --storage'
+# juju add-machine -n 8 --series xenial --constraints zones=us-east-1a,us-east-1b,us-east-1c,us-east-1d
+# juju gui --browser
+# juju upgrade-gui --list
