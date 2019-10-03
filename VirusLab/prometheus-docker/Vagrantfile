@@ -1,0 +1,63 @@
+Vagrant.configure("2") do |cfg|
+    cfg.vm.box = "bento/ubuntu-18.04"
+    # Portainer.io
+    cfg.vm.network "forwarded_port", guest: 9000, host: 9000, auto_correct: true
+    # Prometheus
+    cfg.vm.network "forwarded_port", guest: 9090, host: 9090, auto_correct: true
+    cfg.vm.network "forwarded_port", guest: 9100, host: 9100, auto_correct: true
+    cfg.vm.network "forwarded_port", guest: 9323, host: 9323, auto_correct: true
+
+    # Sync Folder
+    cfg.vm.synced_folder "src/", "/home/vagrant"
+
+    cfg.vm.provider "virtualbox" do |vbox|
+        vbox.name = $vm_name
+        vbox.customize ["modifyvm", :id, "--cpus", 3]
+        vbox.customize ["modifyvm", :id, "--memory", "6144"]
+    end
+    cfg.vm.provision "shell", inline: <<-SHELL
+        sudo apt-get update
+        sudo apt-get remove docker docker-engine docker.io containerd runc
+        sudo apt-get install -y \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            gnupg-agent \
+            software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo apt-key fingerprint 0EBFCD88
+        sudo add-apt-repository \
+            "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) \
+            stable"
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+        apt-cache madison docker-ce
+        sudo docker run hello-world
+        sudo usermod -aG docker vagrant
+        sudo cp -v daemon.json /etc/docker/daemon.json
+    SHELL
+end
+
+
+
+=begin
+docker Version:           19.03.2
+
+/etc/docker/daemon.json
+{
+  "metrics-addr" : "127.0.0.1:9323",
+  "experimental" : true
+}
+
+docker volume create portainer_data
+docker run -d -p 8000:8000 -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer
+
+DO NOT USE PROMETHEUS IN DOCKER CONTAINER
+
+wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+./prometheus --config.file=/home/vagrant/prometheus.yml
+
+https://github.com/stefanprodan/swarmprom
+https://github.com/deviantony/docker-elk
+=end
