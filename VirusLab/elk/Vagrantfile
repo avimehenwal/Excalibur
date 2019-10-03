@@ -1,0 +1,56 @@
+BOX_BASE      = "bento/ubuntu-18.04"
+BOX_RAM_MB    = "2048"
+BOX_CPU_COUNT = "2"
+HOSTNAME      = "testbox.com"
+RESOURCE_PROM = "~/mySoftwares/prometheus-2.13.0-rc.0.linux-amd64.tar.gz"
+RESOURCE_NEXP = "~/mySoftwares/node_exporter-0.18.1.linux-amd64.tar.gz"
+RESOURCE_GRAFANA = "~/mySoftwares/grafana_6.4.1_amd64.deb"
+
+Vagrant.configure("2") do |config|
+  config.vm.define "testbox" do |testbox|
+    testbox.vm.box = BOX_BASE
+    testbox.vm.hostname = HOSTNAME
+    # Sync Folder
+    # testbox.vm.synced_folder RESOURCE_SRC, RESOURCE_DST
+    testbox.vm.provider :virtualbox do |virtualbox|
+      virtualbox.customize ["modifyvm", :id, "--memory", BOX_RAM_MB]
+      virtualbox.customize ["modifyvm", :id, "--cpus", BOX_CPU_COUNT]
+    end
+    # Prometheus UI
+    testbox.vm.network "forwarded_port", guest: 9090, host: 9090, auto_correct: true
+    testbox.vm.network "forwarded_port", guest: 9100, host: 9100, auto_correct: true
+    # Grafana
+    testbox.vm.network "forwarded_port", guest: 3000, host: 3000, auto_correct: true
+    # Portainer.io
+    testbox.vm.network "forwarded_port", guest: 9000, host: 9000, auto_correct: true
+    testbox.vm.provision "docker" do |d|
+      d.run "portainer/portainer",
+        args: "-p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data"
+    end
+    
+    testbox.vm.provision "file", source: "prometheus-elk.yml", destination: "prometheus.yml"
+    testbox.vm.provision "file", source: "daemon.json", destination: "daemon.json"
+    testbox.vm.provision "file", source: "start.sh", destination: "start.sh"
+    testbox.vm.provision "file", source: RESOURCE_GRAFANA , destination: "grafana.deb"
+    testbox.vm.provision "file", source: RESOURCE_NEXP, destination: "node_exporter-0.18.1.linux-amd64.tar.gz"
+    testbox.vm.provision "file", source: RESOURCE_PROM, destination: "prometheus-2.13.0-rc.0.linux-amd64.tar.gz"
+    
+    testbox.vm.provision "shell", inline: <<-SHELL
+      sudo cp -v daemon.json /etc/docker/daemon.json   # scp user doesnt have permission
+      sudo apt-get update
+      sudo chmod -v u+x,g+x,o+x /home/vagrant/start.sh
+      sudo apt-get install -y libfontconfig1 tree
+      cd /home/vagrant
+      sudo dpkg --install /home/vagrant/grafana.deb
+      # ./home/vagrant/start.sh
+    SHELL
+  end
+end
+
+=begin
+The Vagrant Docker provisioner can automatically install Docker,
+pull Docker containers, and configure certain containers to run on boot.
+
+https://www.vagrantup.com/docs/provisioning/docker.html
+
+=end
