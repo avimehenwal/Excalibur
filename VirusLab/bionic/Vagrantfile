@@ -1,45 +1,22 @@
-# https://docs.openstack.org/devstack/latest/
-
-$user = <<-ADDUSER
-sudo useradd -s /bin/bash -d /opt/stack -m stack
-echo "stack ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/stack
-sudo usermod --append --groups sudo stack
-ADDUSER
-
-$script = <<-SCRIPT
-sudo su --login stack --command=pwd
-sudo su --login stack -c git clone https://opendev.org/openstack/devstack
-sudo su --login stack -c cd devstack
-sudo su --login stack -c touch local.conf
-sudo su --login stack -c cat <<EOT >> local.conf
-[[local|localrc]]
-HOST_IP=`hostname -I`
-ADMIN_PASSWORD=pass
-DATABASE_PASSWORD=pass
-RABBIT_PASSWORD=pass
-SERVICE_PASSWORD=pass
-EOT
-sudo su --login stack -c ./stack.sh
-SCRIPT
+BOX_IMAGE  = "bento/ubuntu-18.04"
+NODE_COUNT = 1
 
 Vagrant.configure("2") do |config|
-  config.vm.define :devstack do |devstack|
-    config.vm.box = "ubuntu/bionic64"
-    config.disksize.size = '50GB'
-    config.vm.provider "virtualbox" do |v|
-      v.name = "my_vm"
-      v.cpus = 3
-      v.memory = 2048
+  (1..NODE_COUNT).each do |i|
+    config.vm.define "vm.node#{i}.lab" do |subconfig|
+      subconfig.vm.box = BOX_IMAGE
+      subconfig.vm.hostname = "node#{i}"
+      subconfig.vm.network :private_network, ip: "10.0.0.#{i + 9}", virtualbox__intnet: "mynetwork"
     end
-    #config.vm.provision :shell, inline: $user, privileged: true
-    # Trigger reload machine
-    #config.vm.provision :shell, inline: $script, privileged: true
-    #NSSM
   end
+  config.vm.provision "file", source: "~/EXP/termgraph/data/.", destination: "$HOME/"
+  config.vm.provision "file", source: "~/.config/fish/.", destination: "$HOME/.config/"
+  config.vm.provision "docker", images: ["nginx"]
+  # Runs as /root
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get install -y tree ranger fish vim
+    apt-get -y install python3-pip
+    pip3 install termgraph
+    curl -L https://get.oh-my.fish | fish
+  SHELL
 end
-
-# ISSUES
-# 1. https://stackoverflow.com/questions/46192965/error-in-running-stack-sh-in-devstack
-# 2. devstack: DevStack should be run as a user with sudo permissions,
-    # devstack: not root.
-# 3. https://github.com/aidanns/vagrant-reload

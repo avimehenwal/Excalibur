@@ -1,0 +1,22 @@
+version: "3"
+services:
+  web:
+    # replace username/repo:tag with your name and image details
+    image: avi/hello
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          # limiting each one to use, at most, 10% of a single core
+          # of CPU time (this could also be e.g. “1.5” to mean 1 and half core for each)
+          cpus: "0.1"
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "4000:80"
+    networks:
+      - webnet
+networks:
+  # default settings (which is a load-balanced overlay network).
+  webnet:
