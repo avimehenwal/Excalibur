@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-my-prometheus
+  labels:
+    env: test
+    owner: avi
+
+spec:
+  containers:
+  - name: my-prometheus
+    image: my-prometheus:latest	
+    imagePullPolicy: IfNotPresent
+  nodeSelector:
+    # disktype: ssd
+    owner: avi
+

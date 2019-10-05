@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  dockergui:
+    image: portainer/portainer
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+volumes:
+  portainer_data:
+# docker volume create portainer_data
+
+sudo curl -L -o /usr/local/bin/docker-compose \
+https://github.com/kubernetes/kompose/releases/download/v1.18.0/kompose-linux-amd64
